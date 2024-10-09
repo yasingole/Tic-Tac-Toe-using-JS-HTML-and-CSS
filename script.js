@@ -156,15 +156,47 @@ const gameControl= (function(){
         activePlayer= players[0];
     };
 
-    return { playRound, getActivePlayer, startGame };
+    return { playRound, getActivePlayer, startGame, checkWinner, checkDraw };
 
 })();
 
-gameControl.startGame();
+//gameControl.startGame();
 
+//DOM MANIPULATION 
+// script.js
+const cells = document.querySelectorAll('.cell');
+const resetButton = document.getElementById('reset-button');
+const resultDisplay = document.getElementById('result');
 
-gameControl.playRound(0, 0);  // Player 1 places X
-gameControl.playRound(1, 1);  // Player 2 places O
-gameControl.playRound(0, 1);  // Player 1 places X
-gameControl.playRound(2, 2);  // Player 2 places O
-gameControl.playRound(0, 2);  // Player 1 places X, Player 1 wins!
+// handle selection
+cells.forEach(cell => {
+    cell.addEventListener('click', (event) => {
+        const row = event.target.dataset.row;
+        const col = event.target.dataset.col;
+        gameControl.playRound(row, col); 
+        
+        //get current state of board and update
+        const board= Gameboard.getBoard();
+        event.target.textContent= board[row][col];
+
+        //check win/loss/draw
+        const winner= gameControl.checkWinner(board);
+        const draw= gameControl.checkDraw(board);
+        if (winner) {
+            resultDisplay.textContent = `${gameControl.getActivePlayer().name} wins!`;
+            cells.forEach(cell => cell.style.pointerEvents = 'none');  //disables futher pointer
+        } else if (draw) {
+            resultDisplay.textContent = "It's a draw!";
+            cells.forEach(cell => cell.style.pointerEvents = 'none'); 
+        }  
+    });
+});
+
+resetButton.addEventListener('click', () => {
+    gameControl.startGame(); 
+    cells.forEach(cell => {
+        cell.textContent = "";
+        cell.style.pointerEvents = 'auto'; 
+    });
+    resultDisplay.textContent = "";
+});
